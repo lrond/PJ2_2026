@@ -1,0 +1,45 @@
+{
+  "run_name": "rescnn_w-48-96-192_b-3_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020",
+  "args": {
+    "model": "rescnn",
+    "epochs": 45,
+    "batch_size": 256,
+    "num_workers": 4,
+    "seed": 2020,
+    "device": "cuda:0",
+    "root": "./data",
+    "output_dir": "reports",
+    "n_items": -1,
+    "val_size": 5000,
+    "synthetic": false,
+    "widths": [
+      48,
+      96,
+      192
+    ],
+    "blocks_per_stage": 3,
+    "activation": "relu",
+    "dropout": 0.2,
+    "optimizer": "adamw",
+    "lr": 0.001,
+    "min_lr": 1e-05,
+    "momentum": 0.9,
+    "weight_decay": 0.0001,
+    "scheduler": "cosine",
+    "loss": "cross_entropy",
+    "label_smoothing": 0.1,
+    "focal_gamma": 2.0
+  },
+  "device": "cuda:0",
+  "parameters": 2436346,
+  "total_train_seconds": 198.7414826285094,
+  "best_val_accuracy": 0.9266,
+  "best_val_error": 0.07340000000000002,
+  "test_metrics": {
+    "loss": 0.38129316186904905,
+    "accuracy": 0.9177,
+    "error": 0.08230000000000004
+  },
+  "best_model_path": "reports/models/rescnn_w-48-96-192_b-3_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020.pth",
+  "history_path": "reports/results/rescnn_w-48-96-192_b-3_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020.csv"
+}

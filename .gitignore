@@ -1,0 +1,16 @@
+__pycache__/
+.pytest_cache/
+.DS_Store
+data/cifar-10-batches-py/
+data/cifar-10-python.tar.gz
+reports/models/
+reports/report/
+build_report.py
+PLAN_STATUS.md
+README_EXPERIMENTS.md
+*.pth
+*.pt
+*.pyc
+*.aux
+*.log
+*.out

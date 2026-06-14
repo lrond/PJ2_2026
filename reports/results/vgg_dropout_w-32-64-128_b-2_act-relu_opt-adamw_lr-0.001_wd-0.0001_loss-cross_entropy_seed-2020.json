@@ -1,0 +1,45 @@
+{
+  "run_name": "vgg_dropout_w-32-64-128_b-2_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020",
+  "args": {
+    "model": "vgg_dropout",
+    "epochs": 45,
+    "batch_size": 128,
+    "num_workers": 4,
+    "seed": 2020,
+    "device": "cuda:0",
+    "root": "./data",
+    "output_dir": "reports",
+    "n_items": -1,
+    "val_size": 5000,
+    "synthetic": false,
+    "widths": [
+      32,
+      64,
+      128
+    ],
+    "blocks_per_stage": 2,
+    "activation": "relu",
+    "dropout": 0.2,
+    "optimizer": "adamw",
+    "lr": 0.001,
+    "min_lr": 1e-05,
+    "momentum": 0.9,
+    "weight_decay": 0.0001,
+    "scheduler": "cosine",
+    "loss": "cross_entropy",
+    "label_smoothing": 0.1,
+    "focal_gamma": 2.0
+  },
+  "device": "cuda:0",
+  "parameters": 9750922,
+  "total_train_seconds": 116.62659811228514,
+  "best_val_accuracy": 0.8492,
+  "best_val_error": 0.15080000000000005,
+  "test_metrics": {
+    "loss": 0.5249572105407715,
+    "accuracy": 0.8444,
+    "error": 0.15559999999999996
+  },
+  "best_model_path": "reports/models/vgg_dropout_w-32-64-128_b-2_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020.pth",
+  "history_path": "reports/results/vgg_dropout_w-32-64-128_b-2_act-relu_opt-adamw_lr-0.001_wd-0.0001_loss-cross_entropy_seed-2020.csv"
+}

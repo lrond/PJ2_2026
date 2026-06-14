@@ -1,0 +1,9 @@
+run_name,model,learning_rate,seed,epochs,total_train_seconds,best_val_accuracy,test_accuracy,test_error,summary_path,model_path
+vgg_a_bn_lr-0.0001_seed-2020,vgg_a_bn,0.0001,2020,20,46.3971463739872,0.8344,0.8284,0.17159999999999997,reports/results/vgg_a_bn_lr-0.0001_seed-2020_summary.json,reports/models/vgg_a_bn_lr-0.0001_seed-2020.pth
+vgg_a_bn_lr-0.0005_seed-2020,vgg_a_bn,0.0005,2020,20,47.00200609955937,0.862,0.86,0.14,reports/results/vgg_a_bn_lr-0.0005_seed-2020_summary.json,reports/models/vgg_a_bn_lr-0.0005_seed-2020.pth
+vgg_a_bn_lr-0.001_seed-2020,vgg_a_bn,0.001,2020,20,47.53059970866889,0.8738,0.8696,0.13039999999999996,reports/results/vgg_a_bn_lr-0.001_seed-2020_summary.json,reports/models/vgg_a_bn_lr-0.001_seed-2020.pth
+vgg_a_bn_lr-0.002_seed-2020,vgg_a_bn,0.002,2020,20,46.30003395676613,0.8656,0.8657,0.13429999999999997,reports/results/vgg_a_bn_lr-0.002_seed-2020_summary.json,reports/models/vgg_a_bn_lr-0.002_seed-2020.pth
+vgg_a_lr-0.0001_seed-2020,vgg_a,0.0001,2020,20,47.88163436856121,0.8196,0.8202,0.17979999999999996,reports/results/vgg_a_lr-0.0001_seed-2020_summary.json,reports/models/vgg_a_lr-0.0001_seed-2020.pth
+vgg_a_lr-0.0005_seed-2020,vgg_a,0.0005,2020,20,48.04793239478022,0.8484,0.838,0.16200000000000003,reports/results/vgg_a_lr-0.0005_seed-2020_summary.json,reports/models/vgg_a_lr-0.0005_seed-2020.pth
+vgg_a_lr-0.001_seed-2020,vgg_a,0.001,2020,20,60.1743874642998,0.8266,0.8153,0.18469999999999998,reports/results/vgg_a_lr-0.001_seed-2020_summary.json,reports/models/vgg_a_lr-0.001_seed-2020.pth
+vgg_a_lr-0.002_seed-2020,vgg_a,0.002,2020,20,47.30046996567398,0.7804,0.7693,0.23070000000000002,reports/results/vgg_a_lr-0.002_seed-2020_summary.json,reports/models/vgg_a_lr-0.002_seed-2020.pth

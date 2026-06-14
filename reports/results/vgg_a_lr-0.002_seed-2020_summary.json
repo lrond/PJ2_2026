@@ -1,0 +1,17 @@
+{
+  "run_name": "vgg_a_lr-0.002_seed-2020",
+  "model": "vgg_a",
+  "learning_rate": 0.002,
+  "seed": 2020,
+  "epochs": 20,
+  "device": "cuda:0",
+  "total_train_seconds": 47.30046996567398,
+  "best_val_accuracy": 0.7804,
+  "best_val_error": 0.21960000000000002,
+  "test_metrics": {
+    "loss": 0.6916980347633361,
+    "accuracy": 0.7693,
+    "error": 0.23070000000000002
+  },
+  "model_path": "reports/models/vgg_a_lr-0.002_seed-2020.pth"
+}

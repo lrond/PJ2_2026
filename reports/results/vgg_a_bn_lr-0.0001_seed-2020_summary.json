@@ -1,0 +1,17 @@
+{
+  "run_name": "vgg_a_bn_lr-0.0001_seed-2020",
+  "model": "vgg_a_bn",
+  "learning_rate": 0.0001,
+  "seed": 2020,
+  "epochs": 20,
+  "device": "cuda:0",
+  "total_train_seconds": 46.3971463739872,
+  "best_val_accuracy": 0.8344,
+  "best_val_error": 0.16559999999999997,
+  "test_metrics": {
+    "loss": 0.5439559144020081,
+    "accuracy": 0.8284,
+    "error": 0.17159999999999997
+  },
+  "model_path": "reports/models/vgg_a_bn_lr-0.0001_seed-2020.pth"
+}
