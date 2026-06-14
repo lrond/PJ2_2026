@@ -6,11 +6,17 @@ Neural Network and Deep Learning. The project has two parts:
 1. Train and analyze CIFAR-10 classifiers with different architectures and training choices.
 2. Compare VGG-A with and without Batch Normalization, then analyze why BN helps optimization.
 
+## Project Links
+
+- Code: <https://github.com/lrond/PJ2_2026>
+- CIFAR-10 dataset: <https://drive.google.com/file/d/1BSH50BA7XpiBP2791YqKjNeY4RMbkrGx/view?usp=drive_link>
+- Trained model weights: <https://drive.google.com/file/d/1jEUilYckLD_TS6n8jpKKymsLjpulvtAT/view?usp=drive_link>
+
 ## Main Results
 
 ### Task 1: CIFAR-10 classification
 
-Best custom classifier:
+Best observed custom classifier:
 
 - Model: custom ResCNN
 - Widths: `48,96,192`
@@ -23,17 +29,44 @@ Best custom classifier:
 - Best single-seed test error: `7.16%`
 - Three-seed mean test accuracy: `92.78%`
 
-Model families compared:
+Three-seed matched family comparison:
 
-- VGG-A-Light
-- VGG-A-Dropout
-- PlainCNN
-- Conv-Stem Mixer
-- Conv-Token Transformer
-- ResCNN
+All rows use 45 epochs, AdamW, learning rate `1e-3`, weight decay `1e-4`,
+cross entropy, ReLU, and the same CIFAR-10 split protocol.
 
-The experiments also cover different filter widths/depths, activations, loss functions,
-regularization settings, and optimizers.
+| Model family | Params | Seeds | Mean test accuracy | Val-test gap | Time/run |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| VGG-A-Light | `0.29M` | 3 | `75.58%` | `-0.14 pp` | `1.8 min` |
+| VGG-A-Dropout | `9.75M` | 3 | `84.21%` | `+0.21 pp` | `2.4 min` |
+| PlainCNN | `0.65M` | 3 | `89.65%` | `+0.08 pp` | `1.8 min` |
+| Conv-Stem Mixer | `0.48M` | 3 | `85.25%` | `+0.27 pp` | `2.0 min` |
+| Conv-Token Transformer | `0.78M` | 3 | `85.49%` | `+0.74 pp` | `2.3 min` |
+| ResCNN | `1.56M` | 3 | `91.19%` | `+0.71 pp` | `2.8 min` |
+
+The report interprets this table as an accuracy/capacity/compute/generalization
+trade-off, not an accuracy-only ranking. PlainCNN is the strongest compact
+baseline, while ResCNN gives the best final accuracy for a moderate increase in
+parameters and training time. VGG-A-Dropout has the largest parameter count in
+this matched comparison but does not outperform the smaller convolutional
+baselines, so raw capacity alone is not treated as the explanation.
+
+Seed policy:
+
+- Main model-family comparison: 3 seeds (`2020`, `2021`, `2022`)
+- Final selected ResCNN setting: 3 seeds (`2020`, `2021`, `2022`)
+- Screening ablations and hybrid regularization controls: seed `2020`
+
+The single-seed rows are used to explain design choices, not to make stability
+claims.
+
+Additional Task 1 comparisons cover:
+
+- filter widths and depths
+- activations: ReLU, LeakyReLU, ELU
+- losses: cross entropy, label smoothing, focal loss
+- weight decay controls for the hybrid families
+- optimizers: AdamW, SGD with momentum, RMSprop
+- parameter efficiency, training time, repeated-seed stability, and validation-test gaps
 
 ### Task 2: Batch Normalization
 
@@ -119,9 +152,15 @@ Full GPU experiment batch:
 SWEEP_EPOCHS=45 FINAL_EPOCHS=120 VGG_EPOCHS=20 ./run_full_experiments.sh
 ```
 
+The script skips completed runs when their JSON summaries already exist, so it
+can be used both as the full reproduction entrypoint and as a safe resume
+entrypoint.
+
 The script runs:
 
 - Task 1 structure, activation, loss/regularization, optimizer, and model-family comparisons
+- three-seed matched family comparison for VGG-A-Light, VGG-A-Dropout, PlainCNN, Conv-Stem Mixer, Conv-Token Transformer, and ResCNN
+- single-seed hybrid-family controls separating label smoothing from weight decay
 - three final seeds for the selected ResCNN configuration
 - Task 2 VGG-A/VGG-A-BN learning-rate sweep
 - loss landscape and gradient mechanism analysis

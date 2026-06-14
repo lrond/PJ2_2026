@@ -151,10 +151,56 @@ def history_label(row):
     )
 
 
+def _as_float(row, key, default=0.0):
+    try:
+        return float(row.get(key, default) or default)
+    except (TypeError, ValueError):
+        return default
+
+
+def _mean(values):
+    return sum(values) / len(values) if values else 0.0
+
+
+def _std(values):
+    if len(values) < 2:
+        return 0.0
+    center = _mean(values)
+    return float(np.sqrt(sum((value - center) ** 2 for value in values) / (len(values) - 1)))
+
+
+def matched_family_groups(rows):
+    groups = {}
+    for row in rows:
+        model = row.get('model', '')
+        if row.get('optimizer') != 'adamw':
+            continue
+        if str(row.get('lr')) != '0.001':
+            continue
+        if str(row.get('weight_decay')) != '0.0001':
+            continue
+        if row.get('loss') != 'cross_entropy':
+            continue
+        if row.get('activation') != 'relu':
+            continue
+        if model in {'plaincnn', 'rescnn', 'conv_stem_mixer', 'conv_token_transformer'}:
+            if row.get('widths') != '48,96,192' or str(row.get('blocks_per_stage')) != '2':
+                continue
+        elif model in {'vgg_light', 'vgg_dropout'}:
+            if row.get('widths') != '32,64,128' or str(row.get('blocks_per_stage')) != '2':
+                continue
+        else:
+            continue
+        groups.setdefault(model, []).append(row)
+    for model in groups:
+        groups[model] = sorted(groups[model], key=lambda item: int(item.get('seed') or 0))
+    return groups
+
+
 def plot_histories(summary_rows, output_path, limit=8):
     rows = sorted(
         [row for row in summary_rows if row.get('history_path')],
-        key=lambda row: float(row.get('best_val_accuracy') or 0.0),
+        key=lambda row: _as_float(row, 'best_val_accuracy'),
         reverse=True,
     )[:limit]
     if not rows:
@@ -171,6 +217,202 @@ def plot_histories(summary_rows, output_path, limit=8):
     plt.ylabel('Validation accuracy')
     plt.title('Task 1 validation accuracy curves')
     plt.legend(fontsize=8, loc='lower right')
+    plt.tight_layout()
+    ensure_dir(Path(output_path).parent)
+    plt.savefig(output_path)
+    plt.close()
+
+
+def plot_matched_family_comparison(summary_rows, output_path):
+    groups = matched_family_groups(summary_rows)
+    order = [
+        'vgg_light', 'vgg_dropout', 'plaincnn', 'conv_stem_mixer',
+        'conv_token_transformer', 'rescnn',
+    ]
+    rows = []
+    for model in order:
+        model_rows = groups.get(model, [])
+        if not model_rows:
+            continue
+        scores = [_as_float(row, 'test_accuracy') for row in model_rows]
+        rows.append((model, _mean(scores), _std(scores), len(scores)))
+    if len(rows) < 2:
+        return
+
+    labels = [_display_model(model) for model, _, _, _ in rows]
+    means = [100 * score for _, score, _, _ in rows]
+    errors = [100 * spread for _, _, spread, _ in rows]
+    colors = ['#7f7f7f', '#4c78a8', '#72b7b2', '#f58518', '#54a24b', '#e45756']
+    x_positions = np.arange(len(rows))
+
+    plt.figure(figsize=(9.5, 4.8))
+    bars = plt.bar(
+        x_positions,
+        means,
+        yerr=errors,
+        capsize=4,
+        color=colors[:len(rows)],
+        edgecolor='#222222',
+        linewidth=0.7,
+    )
+    plt.ylabel('Test accuracy (%)')
+    plt.title('Three-seed matched model-family comparison')
+    plt.xticks(x_positions, labels, rotation=18, ha='right')
+    lower = max(70.0, min(means) - max(errors or [0]) - 2.0)
+    upper = min(95.0, max(means) + max(errors or [0]) + 2.0)
+    plt.ylim(lower, upper)
+    plt.grid(axis='y', linestyle='--', alpha=0.35)
+    for bar, (_, mean_score, _, n_seeds) in zip(bars, rows):
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.25,
+            f'{100 * mean_score:.2f}%\nn={n_seeds}',
+            ha='center',
+            va='bottom',
+            fontsize=8,
+        )
+    plt.tight_layout()
+    ensure_dir(Path(output_path).parent)
+    plt.savefig(output_path)
+    plt.close()
+
+
+def plot_efficiency_tradeoff(summary_rows, output_path):
+    groups = matched_family_groups(summary_rows)
+    order = [
+        'vgg_light', 'vgg_dropout', 'plaincnn', 'conv_stem_mixer',
+        'conv_token_transformer', 'rescnn',
+    ]
+    rows = []
+    for model in order:
+        model_rows = groups.get(model, [])
+        if not model_rows:
+            continue
+        test_scores = [_as_float(row, 'test_accuracy') for row in model_rows]
+        val_scores = [_as_float(row, 'best_val_accuracy') for row in model_rows]
+        times = [_as_float(row, 'total_train_seconds') / 60 for row in model_rows]
+        params = _as_float(model_rows[0], 'parameters') / 1_000_000
+        rows.append({
+            'model': model,
+            'params_m': params,
+            'mean_test': 100 * _mean(test_scores),
+            'gap_pp': 100 * (_mean(val_scores) - _mean(test_scores)),
+            'time_min': _mean(times),
+        })
+    if len(rows) < 2:
+        return
+
+    x_values = [row['params_m'] for row in rows]
+    y_values = [row['mean_test'] for row in rows]
+    gaps = [row['gap_pp'] for row in rows]
+    sizes = [120 + 90 * row['time_min'] for row in rows]
+
+    plt.figure(figsize=(8.8, 4.9))
+    scatter = plt.scatter(
+        x_values,
+        y_values,
+        s=sizes,
+        c=gaps,
+        cmap='coolwarm',
+        edgecolor='#222222',
+        linewidth=0.7,
+        alpha=0.9,
+    )
+    for row in rows:
+        plt.annotate(
+            _display_model(row['model']),
+            (row['params_m'], row['mean_test']),
+            xytext=(6, 4),
+            textcoords='offset points',
+            fontsize=8,
+        )
+    plt.xscale('log')
+    plt.xlabel('Parameters (millions, log scale)')
+    plt.ylabel('Mean test accuracy (%)')
+    plt.title('Task 1 efficiency and generalization trade-off')
+    plt.grid(True, which='both', linestyle='--', alpha=0.30)
+    colorbar = plt.colorbar(scatter)
+    colorbar.set_label('Validation - test gap (pp)')
+    for time_min in (1.8, 2.4, 2.8):
+        plt.scatter([], [], s=120 + 90 * time_min, color='#bbbbbb',
+                    edgecolor='#222222', label=f'{time_min:.1f} min/run')
+    plt.legend(
+        title='Point size',
+        fontsize=8,
+        title_fontsize=8,
+        loc='lower right',
+        frameon=True,
+    )
+    plt.tight_layout()
+    ensure_dir(Path(output_path).parent)
+    plt.savefig(output_path)
+    plt.close()
+
+
+def plot_hybrid_controls(summary_rows, output_path):
+    models = ['conv_stem_mixer', 'conv_token_transformer']
+    variants = [
+        ('cross_entropy', '0.0001', 'CE wd1e-4'),
+        ('label_smoothing', '0.0001', 'LS wd1e-4'),
+        ('cross_entropy', '0.0005', 'CE wd5e-4'),
+        ('label_smoothing', '0.0005', 'LS wd5e-4'),
+    ]
+    scores = []
+    for model in models:
+        model_scores = []
+        for loss, weight_decay, _ in variants:
+            matches = [
+                row for row in summary_rows
+                if row.get('model') == model
+                and row.get('widths') == '48,96,192'
+                and str(row.get('blocks_per_stage')) == '2'
+                and row.get('activation') == 'relu'
+                and row.get('optimizer') == 'adamw'
+                and str(row.get('lr')) == '0.001'
+                and str(row.get('seed')) == '2020'
+                and row.get('loss') == loss
+                and str(row.get('weight_decay')) == weight_decay
+            ]
+            model_scores.append(100 * _as_float(matches[0], 'test_accuracy') if matches else np.nan)
+        scores.append(model_scores)
+    if all(np.isnan(value) for model_scores in scores for value in model_scores):
+        return
+
+    x_positions = np.arange(len(models))
+    width = 0.18
+    offsets = np.linspace(-1.5 * width, 1.5 * width, len(variants))
+    colors = ['#4c78a8', '#72b7b2', '#f58518', '#e45756']
+
+    plt.figure(figsize=(8.8, 4.5))
+    for idx, (_, _, label) in enumerate(variants):
+        values = [model_scores[idx] for model_scores in scores]
+        bars = plt.bar(
+            x_positions + offsets[idx],
+            values,
+            width=width,
+            label=label,
+            color=colors[idx],
+            edgecolor='#222222',
+            linewidth=0.6,
+        )
+        for bar, value in zip(bars, values):
+            if np.isnan(value):
+                continue
+            plt.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + 0.12,
+                f'{value:.1f}',
+                ha='center',
+                va='bottom',
+                fontsize=8,
+            )
+    plt.ylabel('Test accuracy (%)')
+    plt.title('Hybrid-family regularization controls, seed 2020')
+    plt.xticks(x_positions, [_display_model(model) for model in models])
+    finite_scores = [value for model_scores in scores for value in model_scores if not np.isnan(value)]
+    plt.ylim(max(80.0, min(finite_scores) - 1.5), min(90.0, max(finite_scores) + 1.5))
+    plt.grid(axis='y', linestyle='--', alpha=0.35)
+    plt.legend(fontsize=8, ncol=2, loc='upper center', bbox_to_anchor=(0.5, -0.12))
     plt.tight_layout()
     ensure_dir(Path(output_path).parent)
     plt.savefig(output_path)
@@ -272,6 +514,9 @@ def main():
     write_csv(task1_rows, results_dir / 'task1_summary.csv')
     write_csv(vgg_rows, results_dir / 'vgg_bn_summary.csv')
     plot_histories(task1_rows, figures_dir / 'task1_validation_curves.pdf')
+    plot_matched_family_comparison(task1_rows, figures_dir / 'task1_matched_family_comparison.pdf')
+    plot_efficiency_tradeoff(task1_rows, figures_dir / 'task1_efficiency_tradeoff.pdf')
+    plot_hybrid_controls(task1_rows, figures_dir / 'task1_hybrid_controls.pdf')
 
     best_row = best_task1_row(task1_rows)
     if best_row is not None and not args.skip_model_figures:

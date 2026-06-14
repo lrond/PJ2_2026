@@ -4,6 +4,7 @@ __pycache__/
 data/cifar-10-batches-py/
 data/cifar-10-python.tar.gz
 reports/models/
+reports/model_weights_bundle/
 reports/report/
 build_report.py
 PLAN_STATUS.md
