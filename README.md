@@ -70,14 +70,11 @@ and `1e-4`.
 └── requirements.txt
 ```
 
-Large files are intentionally not tracked:
+## Included Artifacts
 
-- CIFAR-10 archives and extracted data
-- trained `.pth` model weights
-- generated final report PDF/TEX
-- local report-generation helper scripts
-
-The final report should include separate links for the dataset and trained weights.
+The repository provides the training/evaluation code, model definitions, CPU
+regression tests, full GPU experiment launcher, experiment summaries, and report
+figures used for the Project 2 analysis.
 
 ## Setup
 
@@ -137,11 +134,3 @@ After experiments finish:
 ```bash
 python analyze_results.py --reports-dir reports --device cuda:0
 ```
-
-## Notes
-
-- The model weights are excluded from git and should be uploaded separately.
-- The generated final report is excluded from git because the submitted PDF should contain
-  the student's identity and final submission links.
-- The tracked `reports/results` and `reports/figures` files are lightweight evidence from
-  the completed experiment run.
