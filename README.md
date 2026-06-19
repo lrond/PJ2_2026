@@ -114,6 +114,25 @@ figures used for the Project 2 analysis.
 Python 3.10+ with PyTorch and torchvision is recommended. On the GPU machine used
 for these runs, PyTorch `2.8.0+cu128` and torchvision `0.23.0+cu128` were used.
 
+## Training Hardware and Environment
+
+The full CIFAR-10 and VGG-A/BN experiments were run on a remote GPU machine with
+an NVIDIA GeForce RTX 5090. Training used CUDA device `cuda:0` with PyTorch
+`2.8.0+cu128` and torchvision `0.23.0+cu128`.
+
+The full experiment launcher defaults were:
+
+- `DEVICE=cuda:0`
+- `BATCH_SIZE=256`
+- `VGG_BATCH_SIZE=128`
+- `SWEEP_EPOCHS=45`
+- `FINAL_EPOCHS=120`
+- `VGG_EPOCHS=20`
+- `SEED=2020`
+
+The main matched model-family comparison and the selected final ResCNN setting
+were repeated with seeds `2020`, `2021`, and `2022`.
+
 Install dependencies:
 
 ```bash
